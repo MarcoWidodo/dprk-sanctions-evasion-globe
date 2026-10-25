@@ -1,12 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DPRK Evasion Globe</title>
-<meta name="description" content="An interactive 3D globe for exploring North Korea's global sanctions-evasion network.">
+<meta name="description" content="An interactive 3D globe of North Korea's sanctions-evasion network: 3,956 actors, 6,502 documented links, and how few were ever sanctioned.">
+<meta name="theme-color" content="#05060f">
+<meta property="og:type" content="website">
+<meta property="og:title" content="North Korea's Sanctions-Evasion Network · A Global View">
+<meta property="og:description" content="Explore 3,956 actors and 6,502 documented links from RAND/C4ADS data, and see how few were ever formally sanctioned.">
+<meta property="og:url" content="https://dprk-sanctions.vercel.app/">
+<meta property="og:image" content="https://dprk-sanctions.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="North Korea's Sanctions-Evasion Network · A Global View">
+<meta name="twitter:description" content="Explore 3,956 actors and 6,502 documented links, and see how few were ever formally sanctioned.">
+<meta name="twitter:image" content="https://dprk-sanctions.vercel.app/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230c1c30' stroke='%234c8dff' stroke-width='2'/%3E%3Cpath d='M5 13c7 4 15 4 22 0M5 19c7-4 15-4 22 0' stroke='%23f0642e' stroke-width='2' fill='none'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
   :root{
     --bg:#05060f; --panel:rgba(13,20,38,0.82); --panel-solid:#0d1426;
     --line:rgba(120,150,190,0.18); --ink:#e8edf4; --ink-dim:#9fb0c8; --ink-faint:#6b7d99;
     --ctl:#ff5252; --fin:#ffb020; --proc:#38bdf8; --rev:#34d399; --trspt:#a78bfa;
-    --gap:#e04f39; --ok:#00c07a; --gold:#FEDD5C; --accent:#ff6b5e;
+    --gap:#f0642e; --ok:#4c8dff; --gold:#FEDD5C; --accent:#ff6b5e;
     --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
@@ -18,6 +36,7 @@
   #globeViz{position:absolute;inset:0}
   canvas{display:block}
   button{font-family:inherit}
+  a{color:#8fb6ff}
 
   #topbar{position:absolute;top:0;left:0;right:0;padding:14px 18px 22px;z-index:5;
     background:linear-gradient(180deg,rgba(5,6,15,.92) 0%,rgba(5,6,15,.5) 65%,rgba(5,6,15,0) 100%);
@@ -25,20 +44,22 @@
   .title{font-size:17px;font-weight:700;line-height:1.15}
   .title .accent{color:var(--accent)}
   .subtitle{font-size:12px;color:var(--ink-dim);margin-top:3px;max-width:560px;line-height:1.35}
-  #aboutBtn{pointer-events:auto;flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  .topbtns{display:flex;gap:8px;flex:0 0 auto;pointer-events:auto}
+  .topbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);
     border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;backdrop-filter:blur(6px);display:flex;gap:7px;align-items:center}
-  #aboutBtn:hover{border-color:var(--accent);color:#fff}
-  #aboutBtn .q{display:inline-flex;width:17px;height:17px;border-radius:50%;background:var(--accent);color:#0a0a0a;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+  .topbtn:hover{border-color:var(--accent);color:#fff}
+  .topbtn .q{display:inline-flex;width:17px;height:17px;border-radius:50%;background:var(--accent);color:#0a0a0a;align-items:center;justify-content:center;font-weight:700;font-size:11px}
 
   /* KPI vertical stack, left */
   #kpis{position:absolute;left:16px;top:94px;display:flex;flex-direction:column;gap:8px;z-index:5;pointer-events:auto}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;backdrop-filter:blur(6px);min-width:150px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;backdrop-filter:blur(6px);min-width:150px;max-width:190px}
   .kpi .v{font-size:20px;font-weight:700;line-height:1;font-family:var(--sans)}
   .kpi .l{font-size:10px;color:var(--ink-dim);margin-top:5px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--sans);font-weight:500}
-  .kpi.gap .v{color:var(--gap)} .kpi.gap{border-color:rgba(224,79,57,.4)}
+  .kpi .s{font-size:10px;color:var(--ink-faint);margin-top:3px;line-height:1.3;font-family:var(--mono)}
+  .kpi.gap .v{color:var(--gap)} .kpi.gap{border-color:rgba(240,100,46,.4)}
 
-  aside{flex:0 0 360px;background:var(--panel-solid);border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:6;box-shadow:-8px 0 24px rgba(0,0,0,.35)}
-  .aside-scroll{overflow-y:auto;padding:16px 16px 48px}
+  aside{flex:0 0 360px;background:var(--panel-solid);border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:6;box-shadow:-8px 0 24px rgba(0,0,0,.35);min-height:0}
+  .aside-scroll{overflow-y:auto;padding:16px 16px 48px;min-height:0}
   .aside-scroll::-webkit-scrollbar{width:9px}
   .aside-scroll::-webkit-scrollbar-thumb{background:#22304d;border-radius:6px}
   section.blk{margin-bottom:17px}
@@ -78,10 +99,6 @@
   .tg .sw::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#8695ad;transition:all .15s}
   .tg.on .sw{background:#2f6ea8} .tg.on .sw::after{left:17px;background:#eaf2ff}
 
-  .slider-row{display:flex;align-items:center;gap:10px}
-  input[type=range]{flex:1;accent-color:#3a6ea5}
-  .slider-val{font-size:12px;color:var(--gold);font-weight:700;min-width:26px;text-align:right;font-family:var(--mono)}
-
   /* pins + country checklist */
   .pinwrap{display:none;margin-top:11px}
   .pinrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -100,9 +117,13 @@
   .crow input{accent-color:#3a6ea5}
   .crow .cnt{margin-left:auto;color:var(--ink-faint);font-family:var(--mono);font-size:11px}
 
-  #drill{display:none}
+  #drill,#actorPanel{display:none}
+  #actorPanel{background:#0a1120;border:1px solid var(--line);border-radius:10px;padding:13px 13px 12px}
   .drill-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
   .drill-country{font-size:16px;font-weight:700}
+  .actor-name{font-size:15px;font-weight:700;line-height:1.25;margin-bottom:6px;word-break:break-word}
+  .backbtn{background:none;border:0;color:var(--ink-faint);font-size:11px;padding:0;margin-bottom:6px;cursor:pointer;font-family:var(--mono)}
+  .backbtn:hover{color:#fff}
   .xbtn{background:#16223c;border:1px solid var(--line);color:var(--ink-dim);border-radius:6px;width:24px;height:24px;cursor:pointer;flex:0 0 auto;line-height:1;font-size:15px}
   .drill-stats{display:flex;gap:14px;margin:8px 0 10px;font-size:12px;color:var(--ink-dim);font-family:var(--mono)}
   .drill-stats b{color:var(--ink);font-size:15px;display:block}
@@ -149,19 +170,25 @@
   .src{font-size:11.5px;color:var(--ink-faint);line-height:1.5}
   .badges{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
   .badge{font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink-dim);font-family:var(--mono)}
-  .badge.d{background:rgba(0,192,122,.16);border-color:var(--ok);color:#7ff0c0}
-  .badge.u{background:rgba(224,79,57,.14);border-color:var(--gap);color:#ffb3a6}
-  .actorftr{display:flex;gap:8px;margin-top:14px}
+  .badge.d{background:rgba(76,141,255,.16);border-color:var(--ok);color:#b5cfff}
+  .badge.u{background:rgba(240,100,46,.14);border-color:var(--gap);color:#ffbfa3}
+  .actorftr{display:flex;gap:8px;margin-top:12px}
   .btn{border:1px solid var(--line);background:#12203a;color:#e8edf4;border-radius:8px;padding:8px 13px;font-size:12.5px;cursor:pointer}
   .btn:hover{border-color:#3a6ea5}
-  .btn.warn:hover{border-color:var(--gap);color:#ffb3a6}
-  .fieldtab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
-  .fieldtab td{padding:7px 8px;border-bottom:1px solid rgba(120,150,190,.1);vertical-align:top}
-  .fieldtab td.k{color:var(--ink-dim);width:38%;font-family:var(--mono);font-size:11.5px}
+  .btn.warn:hover{border-color:var(--gap);color:#ffbfa3}
+  .subhd{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-faint);margin:14px 0 6px;font-weight:500;font-family:var(--mono)}
+  .connsum{font-size:11.5px;color:var(--ink-dim);line-height:1.5;margin:4px 0 6px}
+  .connsum b{color:var(--ink)}
+  .fieldtab{width:100%;border-collapse:collapse;font-size:12px;margin-top:2px}
+  .fieldtab td{padding:6px 6px;border-bottom:1px solid rgba(120,150,190,.1);vertical-align:top}
+  .fieldtab td.k{color:var(--ink-dim);width:40%;font-family:var(--mono);font-size:11px}
   .fieldtab td.v{color:#e8edf4;word-break:break-word}
-  .conns{margin-top:8px}
-  .conn{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 8px;border-radius:7px;font-size:12px;cursor:pointer}
+  details.rec summary{cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-faint);margin:14px 0 4px;font-family:var(--mono)}
+  details.rec summary:hover{color:#fff}
+  .conns{margin-top:4px}
+  .conn{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 6px;border-radius:7px;font-size:12px;cursor:pointer}
   .conn:hover{background:#12203a}
+  .conn.nolink{cursor:default}.conn.nolink:hover{background:none}
   .conn .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .conn .cr{flex:0 0 auto;letter-spacing:1px}
 
@@ -173,11 +200,19 @@
 
   @media (max-width:860px){
     #app{flex-direction:column}
-    aside{flex:0 0 auto;max-height:48vh;border-left:0;border-top:1px solid var(--line)}
-    #stage{flex:1 1 auto;min-height:52vh}
-    .subtitle{display:none} #kpis{top:70px} .kpi{min-width:118px;padding:7px 11px}.kpi .v{font-size:16px}
+    aside{flex:0 0 auto;height:46vh;height:46dvh;border-left:0;border-top:1px solid var(--line)}
+    #stage{flex:1 1 auto;min-height:0}
+    #topbar{padding:10px 12px 18px}
+    .title{font-size:14.5px}
+    .subtitle{display:none}
+    .topbtn{padding:7px 10px;font-size:12px}
+    .topbtn .lbl{display:none}
+    #kpis{top:auto;bottom:10px;left:10px;right:10px;flex-direction:row;gap:6px}
+    .kpi{min-width:0;max-width:none;flex:1 1 0;padding:7px 9px}.kpi .v{font-size:15px}.kpi .s{display:none}
   }
 </style>
+</head>
+<body>
 
 <div id="app">
   <div id="stage">
@@ -187,17 +222,20 @@
         <div class="title">North Korea's Sanctions-Evasion Network <span class="accent">·</span> A Global View</div>
         <div class="subtitle">Every arc is a documented relationship between actors in the RAND/C4ADS dataset. Drag to spin · click a country or search an actor to drill in.</div>
       </div>
-      <button id="aboutBtn"><span class="q">?</span> About</button>
+      <div class="topbtns">
+        <button class="topbtn" id="shareBtn" title="Copy a link to this exact view"><span aria-hidden="true">🔗</span><span class="lbl" id="shareLbl">Copy link</span></button>
+        <button class="topbtn" id="aboutBtn"><span class="q">?</span><span class="lbl">About</span></button>
+      </div>
     </div>
     <div id="kpis"></div>
     <div id="load"><div class="spin"></div><p>Rendering globe…</p></div>
   </div>
 
   <aside>
-    <div class="aside-scroll">
+    <div class="aside-scroll" id="asideScroll">
       <section class="blk">
         <h3>Find an actor</h3>
-        <input class="search" id="search" placeholder="e.g. Chinpo, MKP, Office 39, Lazarus…" autocomplete="off">
+        <input class="search" id="search" placeholder="e.g. Chinpo, MKP, Office 39, Lazarus…" autocomplete="off" aria-label="Search actors">
         <div id="searchResults"></div>
         <div class="pinwrap" id="pinWrap">
           <h3 style="margin:12px 0 0">Selected actors</h3>
@@ -205,8 +243,20 @@
         </div>
       </section>
 
+      <section class="blk" id="actorPanel" aria-live="polite">
+        <div class="drill-head">
+          <div style="min-width:0">
+            <button class="backbtn" id="actorBack">← back</button>
+            <div class="actor-name" id="actorName"></div>
+            <div class="badges" id="actorBadges"></div>
+          </div>
+          <button class="xbtn" id="actorClose" aria-label="Close actor details">×</button>
+        </div>
+        <div id="actorBody"></div>
+      </section>
+
       <section class="blk" id="drill">
-        <div class="drill-head"><div class="drill-country" id="drillCountry"></div><button class="xbtn" id="drillClose">×</button></div>
+        <div class="drill-head"><div class="drill-country" id="drillCountry"></div><button class="xbtn" id="drillClose" aria-label="Close country">×</button></div>
         <div class="drill-stats" id="drillStats"></div>
         <div class="rolebar" id="drillRoles"></div>
         <div class="scale-lbl"><span>role mix of this country's actors</span></div>
@@ -214,42 +264,18 @@
       </section>
 
       <section class="blk">
-        <h3>Region</h3>
-        <select class="sel" id="regionSel"></select>
+        <h3>Guided tours</h3>
+        <div class="tour" id="tours" style="display:grid;gap:7px"></div>
       </section>
 
       <section class="blk">
-        <h3>Countries</h3>
-        <input class="cfilter" id="countryFilter" placeholder="Filter countries to isolate…" autocomplete="off">
-        <div class="pinrow" id="countryChips"></div>
-        <div class="clist" id="countryList"></div>
-      </section>
-
-      <section class="blk">
-        <h3>Map display</h3>
-        <div class="toggles">
-          <div class="tg on" data-tg="arcs"><span>Connections (arcs)</span><span class="sw"></span></div>
-          <div class="tg on" data-tg="nodes"><span>Nodes (bars)</span><span class="sw"></span></div>
-          <div class="tg on" data-tg="borders"><span>Country borders</span><span class="sw"></span></div>
-        </div>
-        <div style="margin-top:9px">
-          <label class="fieldlbl">Shade countries by</label>
-          <select class="sel" id="fillSel" style="margin-top:6px">
-            <option value="gap">Designation gap (share designated)</option>
-            <option value="actors">Number of actors</option>
-            <option value="s">Activity diversity (avg S-score)</option>
-            <option value="none">Nothing (outlines only)</option>
-          </select>
-        </div>
-      </section>
-
-      <section class="blk">
-        <h3>Functional role (arcs)</h3>
+        <h3>Functional role</h3>
         <div class="chips" id="roleChips"></div>
+        <div class="note">Filters both actors and connections.</div>
       </section>
 
       <section class="blk">
-        <h3>Actor type (nodes)</h3>
+        <h3>Actor type</h3>
         <div class="chips" id="typeChips"></div>
       </section>
 
@@ -263,13 +289,33 @@
       </section>
 
       <section class="blk">
-        <h3>Minimum activity score (B-Score)</h3>
-        <div class="slider-row"><input type="range" id="minB" min="0" max="24" value="0" step="1"><span class="slider-val" id="minBv">0</span></div>
+        <h3>Region</h3>
+        <select class="sel" id="regionSel" aria-label="Region"></select>
       </section>
 
       <section class="blk">
-        <h3>Guided tours</h3>
-        <div class="tour" id="tours" style="display:grid;gap:7px"></div>
+        <h3>Countries</h3>
+        <input class="cfilter" id="countryFilter" placeholder="Filter countries to isolate…" autocomplete="off" aria-label="Filter countries">
+        <div class="pinrow" id="countryChips"></div>
+        <div class="clist" id="countryList"></div>
+      </section>
+
+      <section class="blk">
+        <h3>Map display</h3>
+        <div class="toggles">
+          <div class="tg on" data-tg="arcs"><span>Connections (arcs)</span><span class="sw"></span></div>
+          <div class="tg on" data-tg="nodes"><span>Nodes (bars)</span><span class="sw"></span></div>
+          <div class="tg on" data-tg="borders"><span>Country borders</span><span class="sw"></span></div>
+        </div>
+        <div style="margin-top:9px">
+          <label class="fieldlbl" for="fillSel">Shade countries by</label>
+          <select class="sel" id="fillSel" style="margin-top:6px">
+            <option value="gap">Share of actors designated</option>
+            <option value="actors">Number of actors</option>
+            <option value="s">Activity diversity (avg S-score)</option>
+            <option value="none">Nothing (outlines only)</option>
+          </select>
+        </div>
       </section>
 
       <section class="blk">
@@ -281,18 +327,12 @@
 </div>
 
 <div class="modal" id="aboutModal"><div class="sheet">
-  <div class="sheet-hd"><div><h2>About this globe</h2><div class="sub">An accessible tool for exploring how North Korea evades sanctions</div></div><button class="xbtn" id="aboutClose">×</button></div>
+  <div class="sheet-hd"><div><h2>About this globe</h2><div class="sub">An accessible tool for exploring how North Korea evades sanctions</div></div><button class="xbtn" id="aboutClose" aria-label="Close">×</button></div>
   <div class="sheet-bd" id="aboutBody"></div>
-</div></div>
-
-<div class="modal" id="actorModal"><div class="sheet">
-  <div class="sheet-hd"><div><h2 id="actorName"></h2><div class="badges" id="actorBadges"></div></div><button class="xbtn" id="actorClose">×</button></div>
-  <div class="sheet-bd" id="actorBody"></div>
 </div></div>
 
 <style>.tour button{text-align:left;background:#0a1120;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:9px 11px;font-size:12px;cursor:pointer;line-height:1.3;transition:all .12s}
 .tour button:hover{border-color:#3a6ea5;background:#12203a}.tour button b{font-weight:700}.tour button span{display:block;color:var(--ink-faint);font-size:10.5px;margin-top:2px}</style>
-
 <script>/*topojson-client 3.1.0*/
 // https://github.com/topojson/topojson-client v3.1.0 Copyright 2019 Mike Bostock
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e=e||self).topojson=e.topojson||{})}(this,function(e){"use strict";function t(e){return e}function r(e){if(null==e)return t;var r,n,o=e.scale[0],a=e.scale[1],i=e.translate[0],c=e.translate[1];return function(e,t){t||(r=n=0);var u=2,f=e.length,s=new Array(f);for(s[0]=(r+=e[0])*o+i,s[1]=(n+=e[1])*a+c;u<f;)s[u]=e[u],++u;return s}}function n(e){var t,n=r(e.transform),o=1/0,a=o,i=-o,c=-o;function u(e){(e=n(e))[0]<o&&(o=e[0]),e[0]>i&&(i=e[0]),e[1]<a&&(a=e[1]),e[1]>c&&(c=e[1])}function f(e){switch(e.type){case"GeometryCollection":e.geometries.forEach(f);break;case"Point":u(e.coordinates);break;case"MultiPoint":e.coordinates.forEach(u)}}for(t in e.arcs.forEach(function(e){for(var t,r=-1,u=e.length;++r<u;)(t=n(e[r],r))[0]<o&&(o=t[0]),t[0]>i&&(i=t[0]),t[1]<a&&(a=t[1]),t[1]>c&&(c=t[1])}),e.objects)f(e.objects[t]);return[o,a,i,c]}function o(e,t){var r=t.id,n=t.bbox,o=null==t.properties?{}:t.properties,i=a(e,t);return null==r&&null==n?{type:"Feature",properties:o,geometry:i}:null==n?{type:"Feature",id:r,properties:o,geometry:i}:{type:"Feature",id:r,bbox:n,properties:o,geometry:i}}function a(e,t){var n=r(e.transform),o=e.arcs;function a(e,t){t.length&&t.pop();for(var r=o[e<0?~e:e],a=0,i=r.length;a<i;++a)t.push(n(r[a],a));e<0&&function(e,t){for(var r,n=e.length,o=n-t;o<--n;)r=e[o],e[o++]=e[n],e[n]=r}(t,i)}function i(e){return n(e)}function c(e){for(var t=[],r=0,n=e.length;r<n;++r)a(e[r],t);return t.length<2&&t.push(t[0]),t}function u(e){for(var t=c(e);t.length<4;)t.push(t[0]);return t}function f(e){return e.map(u)}return function e(t){var r,n=t.type;switch(n){case"GeometryCollection":return{type:n,geometries:t.geometries.map(e)};case"Point":r=i(t.coordinates);break;case"MultiPoint":r=t.coordinates.map(i);break;case"LineString":r=c(t.arcs);break;case"MultiLineString":r=t.arcs.map(c);break;case"Polygon":r=f(t.arcs);break;case"MultiPolygon":r=t.arcs.map(f);break;default:return null}return{type:n,coordinates:r}}(t)}function i(e,t){var r={},n={},o={},a=[],i=-1;function c(e,t){for(var n in e){var o=e[n];delete t[o.start],delete o.start,delete o.end,o.forEach(function(e){r[e<0?~e:e]=1}),a.push(o)}}return t.forEach(function(r,n){var o,a=e.arcs[r<0?~r:r];a.length<3&&!a[1][0]&&!a[1][1]&&(o=t[++i],t[i]=r,t[n]=o)}),t.forEach(function(t){var r,a,i=function(t){var r,n=e.arcs[t<0?~t:t],o=n[0];e.transform?(r=[0,0],n.forEach(function(e){r[0]+=e[0],r[1]+=e[1]})):r=n[n.length-1];return t<0?[r,o]:[o,r]}(t),c=i[0],u=i[1];if(r=o[c])if(delete o[r.end],r.push(t),r.end=u,a=n[u]){delete n[a.start];var f=a===r?r:r.concat(a);n[f.start=r.start]=o[f.end=a.end]=f}else n[r.start]=o[r.end]=r;else if(r=n[u])if(delete n[r.start],r.unshift(t),r.start=c,a=o[c]){delete o[a.end];var s=a===r?r:a.concat(r);n[s.start=a.start]=o[s.end=r.end]=s}else n[r.start]=o[r.end]=r;else n[(r=[t]).start=c]=o[r.end=u]=r}),c(o,n),c(n,o),t.forEach(function(e){r[e<0?~e:e]||a.push([e])}),a}function c(e,t,r){var n,o,a;if(arguments.length>1)n=function(e,t,r){var n,o=[],a=[];function i(e){var t=e<0?~e:e;(a[t]||(a[t]=[])).push({i:e,g:n})}function c(e){e.forEach(i)}function u(e){e.forEach(c)}return function e(t){switch(n=t,t.type){case"GeometryCollection":t.geometries.forEach(e);break;case"LineString":c(t.arcs);break;case"MultiLineString":case"Polygon":u(t.arcs);break;case"MultiPolygon":!function(e){e.forEach(u)}(t.arcs)}}(t),a.forEach(null==r?function(e){o.push(e[0].i)}:function(e){r(e[0].g,e[e.length-1].g)&&o.push(e[0].i)}),o}(0,t,r);else for(o=0,n=new Array(a=e.arcs.length);o<a;++o)n[o]=o;return{type:"MultiLineString",arcs:i(e,n)}}function u(e,t){var r={},n=[],o=[];function c(e){e.forEach(function(t){t.forEach(function(t){(r[t=t<0?~t:t]||(r[t]=[])).push(e)})}),n.push(e)}function u(t){return function(e){for(var t,r=-1,n=e.length,o=e[n-1],a=0;++r<n;)t=o,o=e[r],a+=t[0]*o[1]-t[1]*o[0];return Math.abs(a)}(a(e,{type:"Polygon",arcs:[t]}).coordinates[0])}return t.forEach(function e(t){switch(t.type){case"GeometryCollection":t.geometries.forEach(e);break;case"Polygon":c(t.arcs);break;case"MultiPolygon":t.arcs.forEach(c)}}),n.forEach(function(e){if(!e._){var t=[],n=[e];for(e._=1,o.push(t);e=n.pop();)t.push(e),e.forEach(function(e){e.forEach(function(e){r[e<0?~e:e].forEach(function(e){e._||(e._=1,n.push(e))})})})}}),n.forEach(function(e){delete e._}),{type:"MultiPolygon",arcs:o.map(function(t){var n,o=[];if(t.forEach(function(e){e.forEach(function(e){e.forEach(function(e){r[e<0?~e:e].length<2&&o.push(e)})})}),(n=(o=i(e,o)).length)>1)for(var a,c,f=1,s=u(o[0]);f<n;++f)(a=u(o[f]))>s&&(c=o[0],o[0]=o[f],o[f]=c,s=a);return o}).filter(function(e){return e.length>0})}}function f(e,t){for(var r=0,n=e.length;r<n;){var o=r+n>>>1;e[o]<t?r=o+1:n=o}return r}function s(e){if(null==e)return t;var r,n,o=e.scale[0],a=e.scale[1],i=e.translate[0],c=e.translate[1];return function(e,t){t||(r=n=0);var u=2,f=e.length,s=new Array(f),l=Math.round((e[0]-i)/o),h=Math.round((e[1]-c)/a);for(s[0]=l-r,r=l,s[1]=h-n,n=h;u<f;)s[u]=e[u],++u;return s}}e.bbox=n,e.feature=function(e,t){return"string"==typeof t&&(t=e.objects[t]),"GeometryCollection"===t.type?{type:"FeatureCollection",features:t.geometries.map(function(t){return o(e,t)})}:o(e,t)},e.merge=function(e){return a(e,u.apply(this,arguments))},e.mergeArcs=u,e.mesh=function(e){return a(e,c.apply(this,arguments))},e.meshArcs=c,e.neighbors=function(e){var t={},r=e.map(function(){return[]});function n(e,r){e.forEach(function(e){e<0&&(e=~e);var n=t[e];n?n.push(r):t[e]=[r]})}function o(e,t){e.forEach(function(e){n(e,t)})}var a={LineString:n,MultiLineString:o,Polygon:o,MultiPolygon:function(e,t){e.forEach(function(e){o(e,t)})}};for(var i in e.forEach(function e(t,r){"GeometryCollection"===t.type?t.geometries.forEach(function(t){e(t,r)}):t.type in a&&a[t.type](t.arcs,r)}),t)for(var c=t[i],u=c.length,s=0;s<u;++s)for(var l=s+1;l<u;++l){var h,p=c[s],g=c[l];(h=r[p])[i=f(h,g)]!==g&&h.splice(i,0,g),(h=r[g])[i=f(h,p)]!==p&&h.splice(i,0,p)}return r},e.quantize=function(e,t){if(e.transform)throw new Error("already quantized");if(t&&t.scale)u=e.bbox;else{if(!((r=Math.floor(t))>=2))throw new Error("n must be ≥2");var r,o=(u=e.bbox||n(e))[0],a=u[1],i=u[2],c=u[3];t={scale:[i-o?(i-o)/(r-1):1,c-a?(c-a)/(r-1):1],translate:[o,a]}}var u,f,l=s(t),h=e.objects,p={};function g(e){return l(e)}function y(e){var t;switch(e.type){case"GeometryCollection":t={type:"GeometryCollection",geometries:e.geometries.map(y)};break;case"Point":t={type:"Point",coordinates:g(e.coordinates)};break;case"MultiPoint":t={type:"MultiPoint",coordinates:e.coordinates.map(g)};break;default:return e}return null!=e.id&&(t.id=e.id),null!=e.bbox&&(t.bbox=e.bbox),null!=e.properties&&(t.properties=e.properties),t}for(f in h)p[f]=y(h[f]);return{type:"Topology",bbox:u,transform:t,objects:p,arcs:e.arcs.map(function(e){var t,r=0,n=1,o=e.length,a=new Array(o);for(a[0]=l(e[0],0);++r<o;)((t=l(e[r],r))[0]||t[1])&&(a[n++]=t);return 1===n&&(a[n++]=[0,0]),a.length=n,a})}},e.transform=r,e.untransform=s,Object.defineProperty(e,"__esModule",{value:!0})});
@@ -337,19 +377,26 @@ const TYPES={organization:'Organizations',individual:'Individuals',vessel:'Vesse
 const BIT=DATA.bit;
 const CCOORD={},REGION_OF={};
 DATA.countries.forEach(c=>{CCOORD[c.c]=[c.lat,c.lng];REGION_OF[c.c]=c.reg;});
+// countries with no actors of their own still anchor country–country links
+DATA.flows.forEach(f=>{if(!CCOORD[f.a])CCOORD[f.a]=[f.slat,f.slng];if(!CCOORD[f.b])CCOORD[f.b]=[f.tlat,f.tlng];});
+const MIN_N=5;      // below this many actors a country's averages are too noisy to shade
+const GAP_TOP=0.6;  // designation share at which the gap scale tops out
+const SMALL_FILL='rgba(150,162,180,0.30)',SMALL_RGB=[150,162,180];
 
 // country-fill scales (also drive the legend)
 const FILLS={
-  gap:{title:'Designation gap',stops:['#e04f39','#d6a83a','#00c07a'],lo:'0% designated',hi:'100%'},
+  gap:{title:'Share of actors designated',stops:['#f0642e','#9a938c','#4c8dff'],lo:'0%',hi:Math.round(GAP_TOP*100)+'%+'},
   actors:{title:'Number of actors',stops:['#cfe6ff','#3f80b8','#0c3152'],lo:'few',hi:'many'},
   s:{title:'Activity diversity (S-score)',stops:['#ece1ff','#8b5cf6','#4c1d95'],lo:'single-purpose',hi:'diversified'},
   none:{title:'Outlines only',stops:null}
 };
 
-const state={roles:new Set(ROLE_ORDER),types:new Set(Object.keys(TYPES)),desig:'all',minB:0,
+const DEFAULTS=()=>({roles:new Set(ROLE_ORDER),types:new Set(Object.keys(TYPES)),desig:'all',
   region:'all',countries:new Set(),showArcs:true,showNodes:true,showBorders:true,fill:'gap',
-  selectedCountry:null,actors:[]};
-let CUR={by:{},max:1,maxAvgS:1};
+  selectedCountry:null,actors:[],open:null});
+const state=DEFAULTS();
+let CUR={by:{},max:1,maxAvgS:1},LINKS={arcs:[],total:0};
+const actorHistory=[];
 
 // ---- color helpers ----
 function h2r(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
@@ -357,34 +404,94 @@ function mix(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*t));}
 function ramp(t,stops){t=Math.max(0,Math.min(1,t));const n=stops.length-1;let seg=Math.min(n-1,Math.floor(t*n));const lt=t*n-seg;return mix(h2r(stops[seg]),h2r(stops[seg+1]),lt);}
 function rgba(c,a){return`rgba(${c[0]},${c[1]},${c[2]},${a})`;}
 function gradCSS(stops){return`linear-gradient(90deg,${stops.join(',')})`;}
-const desigRGB=p=>ramp(p,FILLS.gap.stops);
+const desigRGB=p=>ramp(p/GAP_TOP,FILLS.gap.stops);
 function fmt(n){return(n||0).toLocaleString('en-US');}
+function pct(a,b){return b?Math.round(1000*a/b)/10:0;}
 function maskRoles(m){return ROLE_ORDER.filter(r=>m&BIT[r]);}
-function maskDom(m){for(const r of['proc','rev','fin','trspt','ctl'])if(m&BIT[r])return r;return'ctl';}
 function roleBits(){let b=0;state.roles.forEach(r=>b|=BIT[r]);return b;}
+function allRoles(){return state.roles.size===ROLE_ORDER.length;}
+function pairKey(a,b){return a<b?a+'|'+b:b+'|'+a;}
+function zeroRoles(){return{proc:0,rev:0,fin:0,trspt:0,ctl:0};}
+function domRole(rc){let best='ctl',bv=0;for(const r of ROLE_ORDER)if(state.roles.has(r)&&rc[r]>bv){bv=rc[r];best=r;}return best;}
 
-function entityPasses(e){
+// ---- links ----
+// Every documented link once: actor–actor pairs (adj is symmetric) and actor–country links.
+const EDGES=[];
+for(const[k,items]of Object.entries(DATA.adj)){const i=+k;
+  for(const[ref,mask]of items){
+    if(typeof ref==='number'){if(ref<i)continue;EDGES.push({i,j:ref,ca:DATA.entities[i].c,cb:DATA.entities[ref].c,mask});}
+    else EDGES.push({i,j:null,ca:DATA.entities[i].c,cb:ref,mask});}}
+// Country–country links exist only in the precomputed flows: keep whatever the actor links don't explain.
+const NATION_LINKS=(()=>{const seen={};
+  for(const ed of EDGES){if(ed.ca===ed.cb||!CCOORD[ed.ca]||!CCOORD[ed.cb])continue;
+    const s=seen[pairKey(ed.ca,ed.cb)]||(seen[pairKey(ed.ca,ed.cb)]={n:0,roles:zeroRoles()});s.n++;maskRoles(ed.mask).forEach(r=>s.roles[r]++);}
+  const out=[];
+  for(const f of DATA.flows){if(!CCOORD[f.a]||!CCOORD[f.b])continue;const s=seen[pairKey(f.a,f.b)]||{n:0,roles:zeroRoles()},n=f.count-s.n;if(n<=0)continue;
+    const roles=zeroRoles();ROLE_ORDER.forEach(r=>roles[r]=Math.max(0,(f.roles[r]||0)-s.roles[r]));out.push({ca:f.a,cb:f.b,n,roles});}
+  return out;})();
+
+// ---- filters ----
+function rolePasses(e){return allRoles()||(e.roles||[]).some(r=>state.roles.has(r));}
+function attrPasses(e){
   if(!state.types.has(e.type))return false;
   if(state.desig==='d'&&!e.d)return false;
   if(state.desig==='u'&&e.d)return false;
-  if((e.b||0)<state.minB)return false;
-  if(state.region!=='all'&&e.reg!==state.region)return false;
-  if(state.countries.size&&!state.countries.has(e.c))return false;
+  return rolePasses(e);
+}
+function placePasses(c,reg){
+  if(state.region!=='all'&&reg!==state.region)return false;
+  if(state.countries.size&&!state.countries.has(c))return false;
   return true;
 }
+function entityPasses(e){return attrPasses(e)&&placePasses(e.c,e.reg);}
+function attrDefault(){return state.desig==='all'&&state.types.size===Object.keys(TYPES).length;}
+
 function computeCountries(){
   const by={};
-  for(const e of DATA.entities){if(!entityPasses(e))continue;
-    let m=by[e.c];if(!m){m={value:0,d:0,s:0,roles:{ctl:0,fin:0,proc:0,rev:0,trspt:0}};by[e.c]=m;}
+  for(const e of DATA.entities){if(!CCOORD[e.c]||!entityPasses(e))continue;
+    let m=by[e.c];if(!m){m={value:0,d:0,s:0,roles:zeroRoles()};by[e.c]=m;}
     m.value++;if(e.d)m.d++;m.s+=(e.s||0);if(e.roles)for(const r of e.roles)if(m.roles[r]!==undefined)m.roles[r]++;}
   let mx=1,mxa=1;const list=[];
   for(const c of DATA.countries){const m=by[c.c];if(!m||!m.value)continue;
-    mx=Math.max(mx,m.value);mxa=Math.max(mxa,m.s/m.value);
+    mx=Math.max(mx,m.value);if(m.value>=MIN_N)mxa=Math.max(mxa,m.s/m.value);
     list.push(Object.assign({},c,{value:m.value,dcount:m.d,pct:m.d/m.value,avgS:m.s/m.value,rmix:m.roles}));}
   return{list,by,max:mx,maxAvgS:mxa};
 }
+// Links pass when they carry a selected role and involve at least one matching actor in the selected place.
+// With actors selected, only their own links count (place/type filters don't hide part of a network).
+function computeLinks(){
+  const bits=roleBits(),all=allRoles(),agg={},ego=state.actors.length?new Set(state.actors):null;
+  let total=0,domestic=0,unplaced=0;
+  const add=(a,b,n,rc)=>{const k=pairKey(a,b);const p=agg[k]||(agg[k]={a,b,count:0,roles:zeroRoles()});p.count+=n;ROLE_ORDER.forEach(r=>p.roles[r]+=rc[r]||0);};
+  for(const ed of EDGES){
+    if(ego&&!ego.has(ed.i)&&!(ed.j!==null&&ego.has(ed.j)))continue;
+    if(!all&&!(ed.mask&bits))continue;
+    const A=DATA.entities[ed.i],B=ed.j!==null?DATA.entities[ed.j]:null;
+    if(!ego){
+      if(!(attrPasses(A)||(B&&attrPasses(B))))continue;
+      if(!(placePasses(ed.ca,A.reg)||placePasses(ed.cb,B?B.reg:REGION_OF[ed.cb])))continue;
+    }
+    total++;
+    if(!CCOORD[ed.ca]||!CCOORD[ed.cb]){unplaced++;continue;}
+    if(ed.ca===ed.cb){domestic++;continue;}
+    const rc={};maskRoles(all?ed.mask:ed.mask&bits).forEach(r=>rc[r]=1);add(ed.ca,ed.cb,1,rc);
+  }
+  if(!ego&&attrDefault())for(const l of NATION_LINKS){
+    if(!all&&!ROLE_ORDER.some(r=>state.roles.has(r)&&l.roles[r]))continue;
+    if(!(placePasses(l.ca,REGION_OF[l.ca])||placePasses(l.cb,REGION_OF[l.cb])))continue;
+    total+=l.n;add(l.ca,l.cb,l.n,l.roles);
+  }
+  const arcs=Object.values(agg).map(p=>{const s=CCOORD[p.a],t=CCOORD[p.b];
+    return Object.assign(p,{slat:s[0],slng:s[1],tlat:t[0],tlng:t[1],dom:domRole(p.roles)});});
+  return{arcs,total,domestic,unplaced,mapped:arcs.reduce((s,a)=>s+a.count,0)};
+}
+
 function pointRadius(d){return 0.16+0.9*Math.sqrt(d.value/CUR.max);}
 function pointAltitude(d){return 0.012+0.46*Math.sqrt(d.value/CUR.max);}
+function arcLabel(d){
+  const rows=ROLE_ORDER.filter(r=>d.roles[r]).sort((x,y)=>d.roles[y]-d.roles[x]).map(r=>`<span style="color:${ROLE_COLORS[r]}">●</span> ${ROLE_LABEL[r]} ${fmt(d.roles[r])}`).join('<br>');
+  return`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:7px 10px;border:1px solid #2a3a5a;border-radius:7px;line-height:1.45"><b>${esc(d.a)} — ${esc(d.b)}</b><br>${fmt(d.count)} link${d.count>1?'s':''}<div style="color:#9fb0c8;font-size:11px;margin-top:3px">${rows}</div><div style="color:#6b7d99;font-size:10px;margin-top:3px">links can carry several roles</div></div>`;
+}
 
 // ---- globe ----
 const feats=topojson.feature(POLY,POLY.objects.countries).features;
@@ -396,16 +503,16 @@ const globe=Globe()(document.getElementById('globeViz'))
   .polygonLabel(polyLabel).onPolygonClick(f=>{const c=DATA.name2canon[f.properties.name];if(c&&CUR.by[c])selectCountry(c);})
   .arcStartLat(d=>d.slat).arcStartLng(d=>d.slng).arcEndLat(d=>d.tlat).arcEndLng(d=>d.tlng)
   .arcColor(d=>{const c=ROLE_COLORS[d.dom];return[c+'00',c,c+'00'];})
-  .arcStroke(d=>Math.min(2.4,Math.max(0.28,Math.sqrt(d.count)/11)))
+  .arcStroke(d=>Math.min(2.4,Math.max(state.actors.length?0.9:0.28,Math.sqrt(d.count)/11)))
   .arcAltitudeAutoScale(0.42).arcDashLength(0.45).arcDashGap(0.9)
   .arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(900,3200-d.count*3))
-  .arcLabel(d=>`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:6px 9px;border:1px solid #2a3a5a;border-radius:7px"><b>${d.a} — ${d.b}</b><br>${fmt(d.count)} link${d.count>1?'s':''} · <b style="color:${ROLE_COLORS[d.dom]}">${ROLE_LABEL[d.dom]}</b></div>`)
-  .pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(d=>rgba(desigRGB(d.pct),1))
+  .arcLabel(arcLabel)
+  .pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(d=>rgba(d.value<MIN_N?SMALL_RGB:desigRGB(d.pct),1))
   .pointRadius(pointRadius).pointAltitude(pointAltitude)
-  .pointLabel(d=>`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:8px 11px;border:1px solid #2a3a5a;border-radius:8px;min-width:150px"><b style="font-size:13px">${d.c}</b> <span style="color:#6b7d99">· ${d.reg}</span><br><span style="color:#9fb0c8">${fmt(d.value)} actors · ${d.dcount} designated (${Math.round(d.pct*100)}%)</span><br><span style="color:#6b7d99;font-size:11px">click to drill in</span></div>`)
+  .pointLabel(d=>`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:8px 11px;border:1px solid #2a3a5a;border-radius:8px;min-width:150px"><b style="font-size:13px">${d.c}</b> <span style="color:#6b7d99">· ${d.reg}</span><br><span style="color:#9fb0c8">${fmt(d.value)} actors · ${d.dcount} designated (${Math.round(d.pct*100)}%)</span>${d.value<MIN_N?'<br><span style="color:#6b7d99;font-size:11px">too few actors to compare</span>':''}<br><span style="color:#6b7d99;font-size:11px">click to drill in</span></div>`)
   .onPointClick(d=>selectCountry(d.c)).pointsTransitionDuration(300)
   .ringColor(()=>t=>`rgba(255,107,94,${1-t})`).ringMaxRadius(4).ringPropagationSpeed(2).ringRepeatPeriod(1400);
-globe.ringsData(DATA.countries.slice().sort((a,b)=>b.maxB-a.maxB).slice(0,6));
+const DEFAULT_RINGS=DATA.countries.slice().sort((a,b)=>b.maxB-a.maxB).slice(0,6);
 globe.controls().autoRotate=true;globe.controls().autoRotateSpeed=0.42;globe.controls().enableDamping=true;
 globe.pointOfView({lat:18,lng:112,altitude:2.35},0);
 const gm=globe.globeMaterial();gm.color.set('#0c1c30');gm.emissive.set('#040a16');gm.shininess=6;
@@ -417,65 +524,46 @@ function polyFill(f){
   if(!st||!st.value)return'rgba(70,95,125,0.20)';
   if(state.fill==='none')return'rgba(90,120,150,0.42)';
   if(state.fill==='actors')return rgba(ramp(Math.sqrt(st.value/CUR.max),FILLS.actors.stops),0.85);
+  if(st.value<MIN_N)return SMALL_FILL;
   if(state.fill==='s'){const t=(st.s/st.value-1)/((CUR.maxAvgS-1)||1);return rgba(ramp(t,FILLS.s.stops),0.85);}
   return rgba(desigRGB(st.d/st.value),0.85);
 }
 function polyLabel(f){
   const c=DATA.name2canon[f.properties.name],st=c?CUR.by[c]:null;if(!st)return'';
-  return`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:7px 10px;border:1px solid #2a3a5a;border-radius:8px"><b>${c}</b><br><span style="color:#9fb0c8">${fmt(st.value)} actors · ${Math.round(100*st.d/st.value)}% designated · avg S ${(st.s/st.value).toFixed(1)}</span></div>`;
-}
-
-// ---- arcs ----
-function egoArcsFor(e){
-  const items=DATA.adj[String(e.i)]||[],bits=roleBits(),home=CCOORD[e.c];if(!home)return[];
-  const agg={};
-  for(const[ref,mask]of items){if(!(mask&bits))continue;
-    let nc=(typeof ref==='number')?DATA.entities[ref].c:ref;if(!CCOORD[nc]||nc===e.c)continue;
-    if(!agg[nc])agg[nc]={count:0,mask:0,c:nc};agg[nc].count++;agg[nc].mask|=mask;}
-  return Object.values(agg).map(a=>{const co=CCOORD[a.c];return{a:e.c,b:a.c,slat:home[0],slng:home[1],tlat:co[0],tlng:co[1],count:a.count,dom:maskDom(a.mask&bits||a.mask)};});
-}
-function egoUnion(){
-  const agg={};
-  state.actors.forEach(i=>{egoArcsFor(DATA.entities[i]).forEach(a=>{const k=[a.a,a.b].sort().join('|');
-    if(!agg[k])agg[k]=Object.assign({},a);else agg[k].count+=a.count;});});
-  return Object.values(agg);
-}
-function computeArcs(){
-  if(!state.showArcs)return[];
-  if(state.actors.length)return egoUnion();
-  return DATA.flows.filter(f=>{
-    if(!state.roles.has(f.dom))return false;
-    if(state.region!=='all'&&REGION_OF[f.a]!==state.region&&REGION_OF[f.b]!==state.region)return false;
-    if(state.countries.size&&!(state.countries.has(f.a)||state.countries.has(f.b)))return false;
-    return true;});
+  return`<div style="font:12px sans-serif;color:#fff;background:#0d1426;padding:7px 10px;border:1px solid #2a3a5a;border-radius:8px"><b>${c}</b><br><span style="color:#9fb0c8">${fmt(st.value)} actors · ${Math.round(100*st.d/st.value)}% designated · avg S ${(st.s/st.value).toFixed(1)}</span>${st.value<MIN_N?'<br><span style="color:#6b7d99;font-size:11px">too few actors to compare</span>':''}</div>`;
 }
 
 function anySelection(){return state.actors.length||state.selectedCountry;}
 function refresh(){
-  CUR=computeCountries();
+  CUR=computeCountries();LINKS=computeLinks();
   globe.pointsData(state.showNodes?CUR.list:[]);
-  globe.arcsData(computeArcs());
+  globe.arcsData(state.showArcs?LINKS.arcs:[]);
+  globe.ringsData(state.actors.length?[...new Set(state.actors.map(i=>DATA.entities[i].c))].filter(c=>CCOORD[c]).map(c=>({lat:CCOORD[c][0],lng:CCOORD[c][1]})):DEFAULT_RINGS);
   globe.polygonCapColor(polyFill).polygonStrokeColor(polyStroke);
   updateKPIs();updateLegend();
   if(state.selectedCountry)renderDrill(state.selectedCountry);
+  writeHash();
 }
 function updateKPIs(){
-  const ents=CUR.list.reduce((s,c)=>s+c.value,0),des=CUR.list.reduce((s,c)=>s+c.dcount,0);
-  const pct=ents?Math.round(1000*des/ents)/10:0;
-  const conns=computeArcs().reduce((s,a)=>s+(a.count||1),0);
-  const K=[{v:fmt(ents),l:'Actors shown'},{v:pct+'%',l:'Designated',gap:true},{v:fmt(conns),l:'Connections shown'}];
-  document.getElementById('kpis').innerHTML=K.map(k=>`<div class="kpi ${k.gap?'gap':''}"><div class="v">${k.v}</div><div class="l">${k.l}</div></div>`).join('');
+  const ents=DATA.entities.filter(entityPasses),des=ents.filter(e=>e.d).length,unplaced=ents.filter(e=>!CCOORD[e.c]).length;
+  const hidden=[LINKS.domestic&&`${fmt(LINKS.domestic)} within one country`,LINKS.unplaced&&`${fmt(LINKS.unplaced)} to unknown locations`].filter(Boolean).join(' · ');
+  const K=[
+    {v:fmt(ents.length),l:'Actors shown',s:unplaced?`${fmt(unplaced)} have no known location, so aren't on the map`:''},
+    {v:pct(des,ents.length)+'%',l:'Designated',gap:true,s:`${fmt(des)} of ${fmt(ents.length)}`},
+    {v:fmt(LINKS.total),l:state.actors.length?'Links of selected':'Connections',s:`${fmt(LINKS.mapped)} drawn as arcs${hidden?' · '+hidden:''}`}];
+  document.getElementById('kpis').innerHTML=K.map(k=>`<div class="kpi ${k.gap?'gap':''}"><div class="v">${k.v}</div><div class="l">${k.l}</div>${k.s?`<div class="s">${k.s}</div>`:''}</div>`).join('');
 }
 
 // ---- country drill ----
-function selectCountry(c){
+function selectCountry(c,fly=true){
   state.selectedCountry=c;const cd=DATA.countries.find(x=>x.c===c);
-  if(cd){globe.controls().autoRotate=false;globe.pointOfView({lat:cd.lat,lng:cd.lng,altitude:1.6},900);}
+  if(cd&&fly){globe.controls().autoRotate=false;globe.pointOfView({lat:cd.lat,lng:cd.lng,altitude:1.6},900);}
   renderDrill(c);const d=document.getElementById('drill');d.style.display='block';d.scrollIntoView({behavior:'smooth',block:'nearest'});
+  writeHash();
 }
 function renderDrill(c){
   const ents=DATA.entities.filter(e=>e.c===c&&entityPasses(e)).sort((a,b)=>(b.b||0)-(a.b||0));
-  const des=ents.filter(e=>e.d).length,roles={ctl:0,fin:0,proc:0,rev:0,trspt:0};
+  const des=ents.filter(e=>e.d).length,roles=zeroRoles();
   ents.forEach(e=>{if(e.roles)e.roles.forEach(r=>{if(roles[r]!==undefined)roles[r]++;});});
   const rtot=Object.values(roles).reduce((a,b)=>a+b,0)||1;
   document.getElementById('drillCountry').textContent=c;
@@ -485,66 +573,93 @@ function renderDrill(c){
     return`<div class="ent" data-i="${e.i}"><div class="ent-top"><span class="ent-nm" title="${esc(e.name)}">${esc(e.name)}</span><span class="ent-b">${e.b||0}</span></div><div class="ent-meta"><span class="desig"><span class="mk ${e.d?'d':'u'}"></span>${e.d?'designated':'not designated'}</span><span>${e.type}</span><span>${rc}</span></div></div>`;}).join('')+(ents.length>60?`<div class="note">+ ${ents.length-60} more — refine filters or search</div>`:'');
   document.querySelectorAll('#drillEnts .ent').forEach(el=>el.onclick=()=>selectActor(+el.dataset.i));
 }
-document.getElementById('drillClose').onclick=()=>{state.selectedCountry=null;document.getElementById('drill').style.display='none';if(!anySelection())globe.controls().autoRotate=true;};
+function closeDrill(){state.selectedCountry=null;document.getElementById('drill').style.display='none';if(!anySelection())globe.controls().autoRotate=true;writeHash();}
+document.getElementById('drillClose').onclick=closeDrill;
 
 // ---- actors (multi-select, persistent) ----
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function flyToActor(i){const co=CCOORD[DATA.entities[i].c];globe.controls().autoRotate=false;if(co)globe.pointOfView({lat:co[0],lng:co[1],altitude:2.1},900);}
 function selectActor(i){
   if(!DATA.entities[i])return;
   if(!state.actors.includes(i))state.actors.push(i);
-  const e=DATA.entities[i],co=CCOORD[e.c];globe.controls().autoRotate=false;
-  if(co)globe.pointOfView({lat:co[0],lng:co[1],altitude:1.55},900);
-  renderPins();refresh();openActor(i);
+  flyToActor(i);renderPins();openActor(i);refresh();
 }
-function removePin(i){state.actors=state.actors.filter(x=>x!==i);renderPins();refresh();if(!anySelection())globe.controls().autoRotate=true;}
-function clearPins(){state.actors=[];renderPins();refresh();if(!anySelection())globe.controls().autoRotate=true;}
+function removePin(i){state.actors=state.actors.filter(x=>x!==i);if(state.open===i)closeActor();renderPins();refresh();if(!anySelection())globe.controls().autoRotate=true;}
+function clearPins(){state.actors=[];closeActor();renderPins();refresh();if(!anySelection())globe.controls().autoRotate=true;}
 function renderPins(){
   const w=document.getElementById('pinWrap');
   if(!state.actors.length){w.style.display='none';document.getElementById('pinRow').innerHTML='';return;}
   w.style.display='block';
   document.getElementById('pinRow').innerHTML=state.actors.map(i=>{const e=DATA.entities[i];
-    return`<span class="pin"><span class="nm" data-open="${i}" title="${esc(e.name)}">${esc(e.name)}</span><span class="x" data-rem="${i}">×</span></span>`;}).join('')+`<button class="clearbtn" id="clearPins">Clear all</button>`;
-  document.querySelectorAll('#pinRow .nm').forEach(el=>el.onclick=()=>openActor(+el.dataset.open));
+    return`<span class="pin"><span class="nm" data-open="${i}" title="${esc(e.name)}">${esc(e.name)}</span><span class="x" data-rem="${i}" role="button" aria-label="Remove ${esc(e.name)}">×</span></span>`;}).join('')+`<button class="clearbtn" id="clearPins">Clear all</button>`;
+  document.querySelectorAll('#pinRow .nm').forEach(el=>el.onclick=()=>{flyToActor(+el.dataset.open);openActor(+el.dataset.open);});
   document.querySelectorAll('#pinRow .x').forEach(el=>el.onclick=()=>removePin(+el.dataset.rem));
   document.getElementById('clearPins').onclick=clearPins;
 }
-function openActor(i){
+// UN document symbols such as S/2014/127 link to the official document
+function linkSources(v){return esc(v).replace(/\bS\/(\d{4})\/(\d+)/g,(m,y,n)=>`<a href="https://undocs.org/S/${y}/${n}" target="_blank" rel="noopener">${m}</a>`);}
+const HIDE_FIELDS=new Set(['Type','Country','Continent','Sanctions status']);
+function openActor(i,fromBack){
   const e=DATA.entities[i];
+  if(!fromBack&&state.open!==null&&state.open!==i)actorHistory.push(state.open);
+  state.open=i;
+  document.getElementById('actorBack').style.display=actorHistory.length?'block':'none';
   document.getElementById('actorName').textContent=e.name;
-  document.getElementById('actorBadges').innerHTML=[`<span class="badge ${e.d?'d':'u'}">${e.d?'● Designated':'○ Not designated'}</span>`,`<span class="badge">${e.type}</span>`,`<span class="badge">${e.c}</span>`,`<span class="badge">${e.reg}</span>`].join('');
-  const rows=(e.f||[]).map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('');
+  document.getElementById('actorBadges').innerHTML=[`<span class="badge ${e.d?'d':'u'}">${e.d?'● Designated':'○ Not designated'}</span>`,`<span class="badge">${e.type}</span>`,`<span class="badge">${esc(e.c)}</span>`,`<span class="badge">${esc(e.reg)}</span>`].join('');
+  const rows=(e.f||[]).filter(([k,v])=>!HIDE_FIELDS.has(k)&&v&&!/^unknown$/i.test(String(v).trim()))
+    .map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td class="v">${/^Source/.test(k)?linkSources(v):esc(v)}</td></tr>`).join('');
   const items=(DATA.adj[String(e.i)]||[]).slice().sort((a,b)=>b[1]-a[1]);
   let conns='';
-  if(items.length){conns='<h3>Direct connections ('+items.length+')</h3><div class="conns">'+items.slice(0,50).map(([ref,mask])=>{
-    const isE=typeof ref==='number',ne=isE?DATA.entities[ref]:null,nm=isE?ne.name:ref,nc=isE?ne.c:ref;
-    const dots=maskRoles(mask).map(r=>`<span style="color:${ROLE_COLORS[r]}">●</span>`).join('');
-    return`<div class="conn" ${isE?`data-i="${ref}"`:''}><span class="cn">${esc(nm)} <span style="color:#6b7d99">· ${esc(nc)}</span></span><span class="cr">${dots}</span></div>`;}).join('')+(items.length>50?`<div class="note">+ ${items.length-50} more</div>`:'')+'</div>';}
+  if(items.length){
+    let cross=0,home=0,unk=0;const where=new Set();
+    items.forEach(([ref])=>{const nc=typeof ref==='number'?DATA.entities[ref].c:ref;
+      if(!CCOORD[nc]||!CCOORD[e.c])unk++;else if(nc===e.c)home++;else{cross++;where.add(nc);}});
+    const parts=[cross&&`<b>${cross}</b> drawn as arcs to ${where.size} countr${where.size>1?'ies':'y'}`,
+      home&&`<b>${home}</b> within ${esc(e.c)} (ringed on the globe)`,unk&&`<b>${unk}</b> involving an unknown location`].filter(Boolean);
+    conns=`<div class="subhd">Direct connections (${items.length})</div><div class="connsum">${parts.join(' · ')}</div><div class="conns">`+items.map(([ref,mask],n)=>{
+      const isE=typeof ref==='number',ne=isE?DATA.entities[ref]:null,nm=isE?ne.name:ref,nc=isE?ne.c:'country';
+      const dots=maskRoles(mask).map(r=>`<span style="color:${ROLE_COLORS[r]}" title="${ROLE_LABEL[r]}">●</span>`).join('');
+      return`<div class="conn ${isE?'':'nolink'}" ${isE?`data-i="${ref}"`:''} ${n>=40?'hidden':''}><span class="cn">${esc(nm)} <span style="color:#6b7d99">· ${esc(nc)}</span></span><span class="cr">${dots}</span></div>`;}).join('')
+      +(items.length>40?`<button class="clearbtn" id="moreConns" style="margin-top:6px">Show all ${items.length}</button>`:'')+'</div>';
+  }
   const pinned=state.actors.includes(i);
-  document.getElementById('actorBody').innerHTML=`<h3>Dataset record</h3><table class="fieldtab">${rows}</table>`+conns+
-    `<div class="actorftr">${pinned?`<button class="btn warn" id="actorUnpin">Remove from selection</button>`:`<button class="btn" id="actorPin">Add to selection</button>`}<button class="btn" id="actorCloseBtn">Close</button></div>`+
-    `<div class="note">B-Score = 16·procurement + 8·revenue + 4·finance + 2·transport + 1·control (which activities, weighted). S-Score = how many of the five. See About.</div>`;
+  document.getElementById('actorBody').innerHTML=conns+
+    `<details class="rec"${items.length?'':' open'}><summary>Dataset record</summary><table class="fieldtab">${rows}</table>`+
+    `<div class="note">B-Score = 16·procurement + 8·revenue + 4·finance + 2·transport + 1·control (which activities, weighted). S-Score = how many of the five. See About.</div></details>`+
+    `<div class="actorftr">${pinned?`<button class="btn warn" id="actorUnpin">Remove from map</button>`:`<button class="btn" id="actorPin">Show on map</button>`}</div>`;
   document.querySelectorAll('#actorBody .conn[data-i]').forEach(el=>el.onclick=()=>selectActor(+el.dataset.i));
-  const up=document.getElementById('actorUnpin');if(up)up.onclick=()=>{removePin(i);closeActorModal();};
-  const pn=document.getElementById('actorPin');if(pn)pn.onclick=()=>{selectActor(i);};
-  document.getElementById('actorCloseBtn').onclick=closeActorModal;
-  document.getElementById('actorModal').classList.add('open');
+  const more=document.getElementById('moreConns');if(more)more.onclick=()=>{document.querySelectorAll('#actorBody .conn[hidden]').forEach(x=>x.hidden=false);more.remove();};
+  const up=document.getElementById('actorUnpin');if(up)up.onclick=()=>removePin(i);
+  const pn=document.getElementById('actorPin');if(pn)pn.onclick=()=>selectActor(i);
+  const p=document.getElementById('actorPanel');p.style.display='block';
+  document.getElementById('asideScroll').scrollTo({top:0,behavior:'smooth'});
+  writeHash();
 }
-function closeActorModal(){document.getElementById('actorModal').classList.remove('open');}
-document.getElementById('actorClose').onclick=closeActorModal;
-document.getElementById('actorModal').addEventListener('click',ev=>{if(ev.target.id==='actorModal')closeActorModal();});
+function closeActor(){state.open=null;actorHistory.length=0;document.getElementById('actorPanel').style.display='none';writeHash();}
+document.getElementById('actorClose').onclick=closeActor;
+document.getElementById('actorBack').onclick=()=>{const i=actorHistory.pop();if(i!==undefined){flyToActor(i);openActor(i,true);}};
 
 // ---- controls ----
 function buildChips(){
-  document.getElementById('roleChips').innerHTML=ROLE_ORDER.map(r=>`<div class="chip on" data-role="${r}"><span class="dot" style="background:${ROLE_COLORS[r]}"></span>${ROLE_LABEL[r]}</div>`).join('');
-  document.querySelectorAll('#roleChips .chip').forEach(ch=>ch.onclick=()=>{const r=ch.dataset.role;if(state.roles.has(r)){state.roles.delete(r);ch.classList.replace('on','off');}else{state.roles.add(r);ch.classList.replace('off','on');}refresh();});
-  document.getElementById('typeChips').innerHTML=Object.entries(TYPES).map(([k,v])=>`<div class="chip tchip on" data-type="${k}">${v}</div>`).join('');
-  document.querySelectorAll('#typeChips .chip').forEach(ch=>ch.onclick=()=>{const t=ch.dataset.type;if(state.types.has(t)){state.types.delete(t);ch.classList.replace('on','off');}else{state.types.add(t);ch.classList.replace('off','on');}refresh();});
+  document.getElementById('roleChips').innerHTML=ROLE_ORDER.map(r=>`<button class="chip on" data-role="${r}"><span class="dot" style="background:${ROLE_COLORS[r]}"></span>${ROLE_LABEL[r]}</button>`).join('');
+  document.querySelectorAll('#roleChips .chip').forEach(ch=>ch.onclick=()=>{const r=ch.dataset.role;if(state.roles.has(r))state.roles.delete(r);else state.roles.add(r);syncControls();refresh();});
+  document.getElementById('typeChips').innerHTML=Object.entries(TYPES).map(([k,v])=>`<button class="chip tchip on" data-type="${k}">${v}</button>`).join('');
+  document.querySelectorAll('#typeChips .chip').forEach(ch=>ch.onclick=()=>{const t=ch.dataset.type;if(state.types.has(t))state.types.delete(t);else state.types.add(t);syncControls();refresh();});
 }
-document.querySelectorAll('#desigSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#desigSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');state.desig=b.dataset.d;refresh();});
-document.getElementById('minB').oninput=e=>{state.minB=+e.target.value;document.getElementById('minBv').textContent=state.minB;refresh();};
-document.querySelectorAll('.tg').forEach(t=>t.onclick=()=>{const k=t.dataset.tg;t.classList.toggle('on');
-  if(k==='arcs')state.showArcs=t.classList.contains('on');if(k==='nodes')state.showNodes=t.classList.contains('on');if(k==='borders')state.showBorders=t.classList.contains('on');refresh();});
+document.querySelectorAll('#desigSeg button').forEach(b=>b.onclick=()=>{state.desig=b.dataset.d;syncControls();refresh();});
+document.querySelectorAll('.tg').forEach(t=>t.onclick=()=>{const k=t.dataset.tg;
+  if(k==='arcs')state.showArcs=!state.showArcs;if(k==='nodes')state.showNodes=!state.showNodes;if(k==='borders')state.showBorders=!state.showBorders;syncControls();refresh();});
 document.getElementById('fillSel').onchange=e=>{state.fill=e.target.value;refresh();};
+// push state into every control (used by tours, reset and links)
+function syncControls(){
+  document.querySelectorAll('#roleChips .chip').forEach(ch=>{const on=state.roles.has(ch.dataset.role);ch.classList.toggle('on',on);ch.classList.toggle('off',!on);ch.setAttribute('aria-pressed',on);});
+  document.querySelectorAll('#typeChips .chip').forEach(ch=>{const on=state.types.has(ch.dataset.type);ch.classList.toggle('on',on);ch.classList.toggle('off',!on);ch.setAttribute('aria-pressed',on);});
+  document.querySelectorAll('#desigSeg button').forEach(x=>x.classList.toggle('on',x.dataset.d===state.desig));
+  document.querySelectorAll('.tg').forEach(t=>{const k=t.dataset.tg;t.classList.toggle('on',k==='arcs'?state.showArcs:k==='nodes'?state.showNodes:state.showBorders);});
+  document.getElementById('regionSel').value=state.region;
+  document.getElementById('fillSel').value=state.fill;
+  renderCountryChips();buildCountryList(document.getElementById('countryFilter').value);
+}
 
 // region
 function buildRegions(){
@@ -563,9 +678,9 @@ function buildCountryList(filter){
 function renderCountryChips(){
   const w=document.getElementById('countryChips');
   if(!state.countries.size){w.innerHTML='';return;}
-  w.innerHTML=[...state.countries].map(c=>`<span class="pin"><span class="nm" title="${esc(c)}">${esc(c)}</span><span class="x" data-x="${esc(c)}">×</span></span>`).join('')+`<button class="clearbtn" id="clearCountries">Clear</button>`;
-  w.querySelectorAll('.x').forEach(x=>x.onclick=()=>{state.countries.delete(x.dataset.x);renderCountryChips();buildCountryList(document.getElementById('countryFilter').value);refresh();});
-  document.getElementById('clearCountries').onclick=()=>{state.countries.clear();renderCountryChips();buildCountryList(document.getElementById('countryFilter').value);refresh();};
+  w.innerHTML=[...state.countries].map(c=>`<span class="pin"><span class="nm" title="${esc(c)}">${esc(c)}</span><span class="x" data-x="${esc(c)}" role="button" aria-label="Remove ${esc(c)}">×</span></span>`).join('')+`<button class="clearbtn" id="clearCountries">Clear</button>`;
+  w.querySelectorAll('.x').forEach(x=>x.onclick=()=>{state.countries.delete(x.dataset.x);syncControls();refresh();});
+  document.getElementById('clearCountries').onclick=()=>{state.countries.clear();syncControls();refresh();};
 }
 document.getElementById('countryFilter').oninput=e=>buildCountryList(e.target.value);
 
@@ -589,54 +704,85 @@ const TOURS=[
 function buildTours(){document.getElementById('tours').innerHTML=TOURS.map((t,i)=>`<button data-i="${i}"><b>${t.t}</b><span>${t.s}</span></button>`).join('');
   document.querySelectorAll('#tours button').forEach(b=>b.onclick=()=>runTour(TOURS[+b.dataset.i]));}
 function runTour(t){
-  if(t.c){
-    state.roles=new Set(ROLE_ORDER);syncRoleChips();
-    state.region='all';document.getElementById('regionSel').value='all';
-    state.actors=[];renderPins();document.getElementById('actorModal').classList.remove('open');
-    state.countries=partnersOf(t.c);
-    renderCountryChips();buildCountryList(document.getElementById('countryFilter').value);
-    refresh();selectCountry(t.c);
-  }else{
-    state.roles=new Set(ROLE_ORDER);state.types=new Set(Object.keys(TYPES));state.desig='all';state.minB=0;
-    state.region='all';state.countries=new Set();state.actors=[];state.selectedCountry=null;
-    syncRoleChips();document.querySelectorAll('#typeChips .chip').forEach(ch=>{ch.classList.add('on');ch.classList.remove('off');});
-    document.querySelectorAll('#desigSeg button').forEach(x=>x.classList.toggle('on',x.dataset.d==='all'));
-    document.getElementById('minB').value=0;document.getElementById('minBv').textContent='0';
-    document.getElementById('regionSel').value='all';
-    renderCountryChips();buildCountryList('');document.getElementById('countryFilter').value='';
-    renderPins();document.getElementById('drill').style.display='none';document.getElementById('actorModal').classList.remove('open');
-    globe.controls().autoRotate=true;globe.pointOfView({lat:18,lng:112,altitude:2.35},1000);refresh();
-  }
+  const keep={showArcs:state.showArcs,showNodes:state.showNodes,showBorders:state.showBorders,fill:state.fill};
+  Object.assign(state,DEFAULTS(),keep);
+  renderPins();closeActor();
+  document.getElementById('drill').style.display='none';
+  if(t.c){state.countries=partnersOf(t.c);syncControls();refresh();selectCountry(t.c);}
+  else{document.getElementById('countryFilter').value='';syncControls();
+    globe.controls().autoRotate=true;globe.pointOfView({lat:18,lng:112,altitude:2.35},1000);refresh();}
 }
-function syncRoleChips(){document.querySelectorAll('#roleChips .chip').forEach(ch=>{const on=state.roles.has(ch.dataset.role);ch.classList.toggle('on',on);ch.classList.toggle('off',!on);});}
+
+// ---- shareable links: the view lives in the URL hash ----
+let hashReady=false;
+function writeHash(){
+  if(!hashReady)return;
+  const p=new URLSearchParams();
+  if(state.actors.length)p.set('actors',state.actors.join(','));
+  if(state.open!==null)p.set('open',state.open);
+  if(state.selectedCountry)p.set('country',state.selectedCountry);
+  if(state.region!=='all')p.set('region',state.region);
+  if(state.countries.size)p.set('isolate',[...state.countries].join('|'));
+  if(!allRoles())p.set('roles',[...state.roles].join(','));
+  if(state.types.size<Object.keys(TYPES).length)p.set('types',[...state.types].join(','));
+  if(state.desig!=='all')p.set('desig',state.desig);
+  if(state.fill!=='gap')p.set('shade',state.fill);
+  const hide=[!state.showArcs&&'arcs',!state.showNodes&&'nodes',!state.showBorders&&'borders'].filter(Boolean);
+  if(hide.length)p.set('hide',hide.join(','));
+  const h=p.toString();
+  history.replaceState(null,'',h?'#'+h:location.pathname+location.search);
+}
+function readHash(){
+  const p=new URLSearchParams(location.hash.slice(1));
+  const list=(k,sep=',')=>(p.get(k)||'').split(sep).filter(Boolean);
+  const ids=v=>v.map(Number).filter(i=>Number.isInteger(i)&&DATA.entities[i]);
+  state.actors=ids(list('actors'));
+  if(p.has('region')&&DATA.regions.some(r=>r.r===p.get('region')))state.region=p.get('region');
+  state.countries=new Set(list('isolate','|').filter(c=>CCOORD[c]));
+  if(p.has('roles'))state.roles=new Set(list('roles').filter(r=>ROLE_LABEL[r]));
+  if(p.has('types'))state.types=new Set(list('types').filter(t=>TYPES[t]));
+  if(['d','u'].includes(p.get('desig')))state.desig=p.get('desig');
+  if(FILLS[p.get('shade')])state.fill=p.get('shade');
+  const hide=list('hide');state.showArcs=!hide.includes('arcs');state.showNodes=!hide.includes('nodes');state.showBorders=!hide.includes('borders');
+  return{country:CCOORD[p.get('country')]?p.get('country'):null,open:p.has('open')?ids([p.get('open')])[0]:undefined};
+}
+document.getElementById('shareBtn').onclick=async()=>{
+  const lbl=document.getElementById('shareLbl');
+  try{await navigator.clipboard.writeText(location.href);lbl.textContent='Copied!';}
+  catch(err){window.prompt('Copy this link:',location.href);}
+  setTimeout(()=>lbl.textContent='Copy link',1600);
+};
 
 // legend (tracks the Shade-by mode: country fill colors)
 function updateLegend(){
   const f=FILLS[state.fill];
   let shade;
   if(!f.stops)shade=`<div style="margin-top:9px">Countries show <b>outlines only</b>.</div>`;
-  else shade=`<div style="margin-top:9px">Country shading — <b>${f.title}</b></div><div class="scale" style="background:${gradCSS(f.stops)}"></div><div class="scale-lbl"><span>${f.lo}</span><span>${f.hi}</span></div>`;
+  else shade=`<div style="margin-top:9px">Country shading — <b>${f.title}</b></div><div class="scale" style="background:${gradCSS(f.stops)}"></div><div class="scale-lbl"><span>${f.lo}</span><span>${f.hi}</span></div>`
+    +(state.fill==='actors'?'':`<div class="legrow" style="margin-top:6px"><span class="swatch" style="background:${SMALL_FILL};height:10px"></span>fewer than ${MIN_N} actors — too few to compare</div>`);
   document.getElementById('legend').innerHTML=
     ROLE_ORDER.map(r=>`<div class="legrow"><span class="swatch" style="background:${ROLE_COLORS[r]}"></span>${ROLE_LABEL[r]} arcs</div>`).join('')
+    +`<div class="note" style="margin-top:2px">An arc takes the color of its most common role.</div>`
     +shade
-    +`<div style="margin-top:9px">Node <b>height</b> = number of actors · <b>color</b> = share designated</div>
+    +`<div style="margin-top:9px">Node <b>height</b> = number of actors · <b>color</b> = share designated (same scale)</div>
       <div class="legrow" style="margin-top:6px"><span class="mk d"></span>designated actor</div>
       <div class="legrow"><span class="mk u"></span>identified but not designated</div>
-      <div class="note">Arcs show that a relationship exists, not a physical route.</div>`;
+      <div class="note">Arcs show that a relationship exists, not a physical route. They include links that involve at least one actor matching your filters. Links within one country can't be drawn as arcs; they're counted in the Connections box.</div>`;
 }
 
 // About
 function buildAbout(){
   const rk=ROLE_ORDER.map(r=>`<span><i style="background:${ROLE_COLORS[r]}"></i>${ROLE_LABEL[r]}</span>`).join('');
+  const desPct=pct(DATA.entities.filter(e=>e.d).length,DATA.entities.length);
   document.getElementById('aboutBody').innerHTML=`
     <h3>Why this matters</h3>
     <p>For two decades North Korea has funded its weapons programs by evading international sanctions — smuggling coal and oil, selling arms, sending workers abroad, moving luxury goods, and, more recently, stealing and laundering cryptocurrency. Much of this runs not through North Korea directly but through a sprawling web of front companies, middlemen, banks, and ships spread across the world.</p>
-    <p>The problem isn't only finding these actors — investigators have identified <b>thousands</b>. It's that only a small share are ever formally <b>sanctioned</b>. RAND's 2025 study found that authorities failed to sanction roughly <b>45–70%</b> of the highest-value targets in North Korea's networks. This tool makes that "designation gap" visible: shade the globe by designation and most countries glow red, because their actors were identified but never officially listed.</p>
+    <p>The problem isn't only finding these actors — investigators have identified <b>thousands</b>. It's that only a small share are ever formally <b>sanctioned</b>: just <b>${desPct}%</b> of the actors here are designated. RAND's 2025 study found that authorities failed to sanction roughly <b>45–70%</b> of the highest-value targets in North Korea's networks. This tool makes that "designation gap" visible: shade the globe by designation and most countries glow orange, because their actors were identified but never officially listed.</p>
     <p>This is a learning tool. It turns a dense spreadsheet of <b>${fmt(DATA.kpi.entities)} actors</b> and <b>${fmt(DATA.kpi.links)} relationships</b> into something you can explore by hand — to see where the network reaches, what each actor does, and how much of it enforcement has actually touched.</p>
-    <div class="defbox"><span class="term">Read this as an illustration, not a live map.</span> The data is a fixed <b>snapshot</b> — UN Panel of Experts reporting coded through 2022 — and captures only what investigators documented and made public, not the network as it stands today and not in its entirety. Because of that, the globe is best understood less as a current operational picture than as a <b>worked example of a broader lesson: sanctions only bite when they are enforced thoroughly</b>. When most identified actors are never designated, the regime simply keeps operating through the gaps — the very pattern the red shading makes visible. Treat specific figures as illustrative of that dynamic rather than as a complete, up-to-date account.</div>
+    <div class="defbox"><span class="term">Read this as an illustration, not a live map.</span> The data is a fixed <b>snapshot</b> — UN Panel of Experts reporting coded through 2022 — and captures only what investigators documented and made public, not the network as it stands today and not in its entirety. Because of that, the globe is best understood less as a current operational picture than as a <b>worked example of a broader lesson: sanctions only bite when they are enforced thoroughly</b>. When most identified actors are never designated, the regime simply keeps operating through the gaps — the very pattern the orange shading makes visible. Treat specific figures as illustrative of that dynamic rather than as a complete, up-to-date account.</div>
     <h3>Key terms</h3>
     <div class="defbox"><span class="term">Actor (node).</span> Any entity in the network: an organization, an individual, a vessel (ship), an aircraft, or a country. Actors are the dots/bars on the globe.</div>
-    <div class="defbox"><span class="term">Designated vs. not designated.</span> An actor is <b>designated</b> when a government or the UN has formally placed it on a sanctions list — which makes dealing with it illegal and can freeze its assets (green). An actor is <b>not designated</b> when investigators have identified it as part of an evasion network but no authority has ever added it to a list (red). It remains free to keep operating. The gap between the two is the central story of the data.</div>
+    <div class="defbox"><span class="term">Designated vs. not designated.</span> An actor is <b>designated</b> when a government or the UN has formally placed it on a sanctions list — which makes dealing with it illegal and can freeze its assets (blue). An actor is <b>not designated</b> when investigators have identified it as part of an evasion network but no authority has ever added it to a list (orange). It remains free to keep operating. The gap between the two is the central story of the data.</div>
     <div class="defbox"><span class="term">Functional roles.</span> Each relationship is tagged with what it does:<div class="rolekey">${rk}</div><b>Procurement</b> = buying goods/technology; <b>Revenue</b> = earning hard currency (workers, construction, arms, minerals); <b>Finance</b> = moving and laundering money; <b>Transport</b> = shipping and ship-to-ship transfers; <b>Control</b> = command and direction.</div>
     <h3>How RAND scores each actor</h3>
     <p>The dataset carries two simple scores RAND created while coding the network. They describe <i>what an actor does</i>.</p>
@@ -646,22 +792,32 @@ function buildAbout(){
     <div class="defbox"><span class="term">S-Score (0–5) — activity diversity.</span> Simply <i>how many</i> of the five roles an actor performs. An actor doing both procurement and revenue has an S-Score of 2. Higher means a more versatile, multi-purpose actor — you can shade whole countries by their average S-score to see where evasion is most diversified.</div>
     <p>To rank the best sanctions targets, RAND went further and computed a network-centrality measure — <b>Bell's Subgroup Betweenness Centrality</b> — then weighted it by the B-Score. This globe shows the raw B/S scores; the deeper centrality ranking is on the roadmap.</p>
     <h3>How to read the globe</h3>
-    <p><b>Arcs</b> are relationships, colored by function. <b>Node bars</b> rise by how many actors a country hosts, colored red→green by the share designated. You can instead <b>shade whole countries</b> — by designation gap, number of actors, or activity diversity — often easier to read than thin bars, and the legend spectrum updates to match. Filter by region, isolate specific countries, filter by role/type/designation/activity score, or search actors — you can pin several actors at once to compare their networks.</p>
+    <p><b>Arcs</b> are relationships between countries, colored by their most common function (hover one for the full mix). <b>Node bars</b> rise by how many actors a country hosts, colored orange→blue by the share designated. You can instead <b>shade whole countries</b> — by designation share, number of actors, or activity diversity — and the legend updates to match. Countries with fewer than ${MIN_N} actors are shaded grey, because a share based on one or two actors says little. Filter by role, type, designation, region, or specific countries; every filter applies to actors and connections alike. Search actors and select several at once to compare their networks. <b>Copy link</b> saves the exact view you're looking at.</p>
     <h3>Data &amp; caveats</h3>
-    <p>Data: RAND Corporation's coding of UN Panel of Experts reports (2010–2022), enhanced with C4ADS Sanctions Explorer data (Mallory et al., 2025). It is a snapshot and reflects only what investigators documented. Country positions are approximate centroids — an arc means a relationship exists, not a route. A few very small states (e.g., Singapore) are too small to shade at this map resolution but still appear as nodes.</p>
+    <p>Data: RAND Corporation's coding of UN Panel of Experts reports (2010–2022), enhanced with C4ADS Sanctions Explorer data (Mallory et al., 2025). It is a snapshot and reflects only what investigators documented. Country positions are approximate centroids — an arc means a relationship exists, not a route. Links between two actors in the same country can't be drawn as arcs; they're counted in the totals and listed on each actor's panel. ${fmt(DATA.kpi.entities-DATA.kpi.placed)} actors have no known location; they're searchable and counted, but not on the map. A few very small states (e.g., Singapore) are too small to shade at this map resolution but still appear as nodes.</p>
     <p class="src"><b>Sources.</b> Mallory et al. <i>North Korea's Black Knights and Dark Networks.</i> RAND Corporation, RR-A3413-1, 2025. · C4ADS, <i>Sanctions Explorer</i>, 2024. · UN Panel of Experts reports, 2010–2024.</p>`;
 }
 document.getElementById('aboutBtn').onclick=()=>document.getElementById('aboutModal').classList.add('open');
 document.getElementById('aboutClose').onclick=()=>document.getElementById('aboutModal').classList.remove('open');
 document.getElementById('aboutModal').addEventListener('click',ev=>{if(ev.target.id==='aboutModal')ev.currentTarget.classList.remove('open');});
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){document.getElementById('aboutModal').classList.remove('open');closeActorModal();}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){const m=document.getElementById('aboutModal');if(m.classList.contains('open'))m.classList.remove('open');else if(state.open!==null)closeActor();}});
 
 function sizeGlobe(){const s=document.getElementById('stage');globe.width(s.clientWidth);globe.height(s.clientHeight);}
 window.addEventListener('resize',sizeGlobe);
+// a pasted link in an open tab only changes the hash; rebuild the view from it
+window.addEventListener('hashchange',()=>location.reload());
 
 try{
-  buildChips();buildTours();buildRegions();buildCountryList('');buildAbout();
-  sizeGlobe();refresh();requestAnimationFrame(sizeGlobe);
+  buildChips();buildTours();buildRegions();buildAbout();
+  const init=readHash();
+  syncControls();renderPins();sizeGlobe();
+  hashReady=true;refresh();
+  if(init.country)selectCountry(init.country,!state.actors.length);
+  if(init.open!==undefined){flyToActor(init.open);openActor(init.open);}
+  else if(state.actors.length)flyToActor(state.actors[state.actors.length-1]);
+  requestAnimationFrame(sizeGlobe);
   setTimeout(()=>{sizeGlobe();document.getElementById('load').classList.add('hidden');},500);
 }catch(err){fatal(String(err));}
 </script>
+</body>
+</html>
